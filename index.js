@@ -1,8 +1,10 @@
 const express = require('express')
 const app = express()
 const morgan = require('morgan')
+const cors = require('cors')
 
 morgan.token('body', (req, res) => JSON.stringify(req.body))
+app.use(cors())
 app.use(express.json())
 app.use(morgan(':body'))
 
@@ -89,7 +91,6 @@ app.get('/', (req, res) => {
 })
 
 app.get('/info', (req, res) => {
-  console.log(req)
   const date = new Date()
   res.send(`
       <p>Phonebook has info for ${persons.length} people</p>
