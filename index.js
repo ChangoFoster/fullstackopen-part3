@@ -11,7 +11,6 @@ app.use(express.json())
 app.use(logger(':body'))
 app.use(cors())
 
-//Add in build ui script to copy from main repo to this one
 //Change the frontend to show the error 3.20
 app.get('/', (request, response) => {
   response.send('<h1>Bananas</h1>')
