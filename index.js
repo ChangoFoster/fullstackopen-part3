@@ -5,23 +5,26 @@ const logger = require('morgan')
 const cors = require('cors')
 const Person = require('./models/person')
 
-logger.token('body', (request, response) => JSON.stringify(request.body))
+logger.token('body', (request) => JSON.stringify(request.body))
 app.use(express.static('build'))
 app.use(express.json())
 app.use(logger(':body'))
 app.use(cors())
 
-//Change the frontend to show the error 3.20
 app.get('/', (request, response) => {
   response.send('<h1>Bananas</h1>')
 })
 
 app.get('/info', (request, response) => {
   const date = new Date()
-  response.send(`
-      <p>Phonebook has info for ${persons.length} people</p>
-      <p>${date}</p>
-    `)
+  Person
+    .find({})
+    .then(result => {
+      response.send(`
+          <p>Phonebook has info for ${result.length} people</p>
+          <p>${date}</p>
+        `)
+    })
 })
 
 app.get('/api/persons', (request, response, next) => {
@@ -38,7 +41,7 @@ app.post('/api/persons', (request, response, next) => {
   const { name, number } = request.body
 
   if(!name || !number){
-    response.status(400).json({ error: "content missing" })
+    response.status(400).json({ error: 'content missing' })
   } else {
 
     const person = new Person({ name, number })
@@ -74,7 +77,10 @@ app.put('/api/persons/:id', (request, response, next) => {
 
 app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndRemove(request.params.id)
-    .then(result => { response.sendStatus(204) })
+    .then(result => {
+      response.sendStatus(204)
+      return result
+    })
     .catch(error => next(error))
 })
 

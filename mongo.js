@@ -12,7 +12,7 @@ const number = process.argv[4]
 const url =
   `mongodb+srv://fullstack:${password}@cluster0-ioezy.mongodb.net/person-app?retryWrites=true&w=majority`
 
-mongoose.connect(url, {useNewUrlParser: true, useUnifiedTopology: true})
+mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
 
 const personSchema = new mongoose.Schema({
   name: String,
@@ -27,9 +27,10 @@ if (name && number) {
 
   person
     .save()
-    .then(res => {
+    .then(result => {
       console.log(`added ${name} number ${number} to phonebook`)
       mongoose.connection.close()
+      return result
     })
 
 } else {
@@ -37,7 +38,7 @@ if (name && number) {
   Person
     .find({})
     .then(persons => {
-      console.log("phonebook:")
+      console.log('phonebook:')
 
       persons.forEach(person => {
         console.log(`${person.name} ${person.number}`)
