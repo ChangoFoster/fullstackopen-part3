@@ -12,7 +12,7 @@ app.use(logger(':body'))
 app.use(cors())
 
 //Add in build ui script to copy from main repo to this one
-//Change frontend to use the put api
+//Change the frontend to show the error 3.20
 app.get('/', (request, response) => {
   response.send('<h1>Bananas</h1>')
 })
@@ -25,13 +25,16 @@ app.get('/info', (request, response) => {
     `)
 })
 
-app.get('/api/persons', (request, response) => {
-  Person.find({}).then(persons => {
-    response.json(persons.map(person => person.toJSON()))
-  })
+app.get('/api/persons', (request, response, next) => {
+  Person.find({})
+    .then(persons => persons.map(person => person.toJSON()))
+    .then(personsFormattedMap => {
+      response.json(personsFormattedMap)
+    })
+    .catch(error => next(error))
 })
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
 
   const { name, number } = request.body
 
@@ -41,16 +44,19 @@ app.post('/api/persons', (request, response) => {
 
     const person = new Person({ name, number })
 
-    person.save().then(savedPerson => {
-      response.json(savedPerson.toJSON())
-    })
+    person.save()
+      .then(savedPerson => savedPerson.toJSON())
+      .then(savedAndFormattedPerson => {
+        response.json(savedAndFormattedPerson)
+      })
+      .catch(error => next(error))
   }
 })
 
 app.get('/api/persons/:id' , (request, response, next) => {
   Person.findById(request.params.id)
     .then(person => {
-      person ? response.json(person.toJSON()) : response.status(404).end()
+      person ? response.json(person.toJSON()) : response.sendStatus(404)
     })
     .catch(error => next(error))
 })
@@ -60,17 +66,16 @@ app.put('/api/persons/:id', (request, response, next) => {
   const person = { name, number }
 
   Person.findByIdAndUpdate(request.params.id, person, { new: true })
-    .then(updatedPerson => {
-      response.json(updatedPerson.toJSON())
+    .then(updatedPerson => updatedPerson.toJSON())
+    .then(updatedAndFormattedPerson => {
+      response.json(updatedAndFormattedPerson)
     })
     .catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndRemove(request.params.id)
-    .then(result => {
-      response.status(204).end()
-    })
+    .then(result => { response.sendStatus(204) })
     .catch(error => next(error))
 })
 
@@ -81,9 +86,11 @@ const unknownEndpoint = (request, response) => {
 app.use(unknownEndpoint)
 
 const errorHandler = (error, request, response, next) => {
-  console.error(err.message)
+  console.error(error.message)
   if (error.name === 'CastError' && error.kind === 'ObjectId') {
     return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError' ) {
+    return response.status(400).send({ error: error.message })
   }
   next(error)
 }
