@@ -23,7 +23,7 @@ app.get('/info', (request, response) => {
       response.send(`
           <p>Phonebook has info for ${result.length} people</p>
           <p>${date}</p>
-        `)
+      `)
     })
 })
 
@@ -37,7 +37,6 @@ app.get('/api/persons', (request, response, next) => {
 })
 
 app.post('/api/persons', (request, response, next) => {
-
   const { name, number } = request.body
 
   if(!name || !number){
@@ -92,11 +91,13 @@ app.use(unknownEndpoint)
 
 const errorHandler = (error, request, response, next) => {
   console.error(error.message)
+
   if (error.name === 'CastError' && error.kind === 'ObjectId') {
     return response.status(400).send({ error: 'malformatted id' })
   } else if (error.name === 'ValidationError' ) {
     return response.status(400).send({ error: error.message })
   }
+
   next(error)
 }
 
